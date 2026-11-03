@@ -14,6 +14,7 @@ import android.view.HapticFeedbackConstants
 import android.view.MotionEvent
 import android.view.View
 import kotlin.math.abs
+import kotlin.math.max
 
 @SuppressLint("ViewConstructor")
 class KeyboardView(
@@ -44,6 +45,16 @@ class KeyboardView(
             field = value
             invalidate()
         }
+
+    /** Split into two halves on wide screens (an unfolded Fold, a tablet, or a phone on its side). */
+    var splitEnabled = true
+        set(value) {
+            if (field == value) return
+            field = value
+            requestLayout()
+            invalidate()
+        }
+    private var split = false
 
     private var rowHeight = theme.dp(54f)
     private var landscape = false
@@ -105,7 +116,7 @@ class KeyboardView(
 
     fun setMode(m: Int) {
         mode = m
-        rows = Layouts.forMode(m)
+        rows = Layouts.forMode(m, split)
         layoutKeys(width)
         invalidate()
     }
@@ -118,9 +129,23 @@ class KeyboardView(
     // ---------------------------------------------------------------- layout
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
-        rowHeight = theme.dp(if (landscape) 40f else 54f)
+        val cfg = resources.configuration
+        landscape = cfg.orientation == Configuration.ORIENTATION_LANDSCAPE
         val w = MeasureSpec.getSize(widthMeasureSpec)
+        val wantSplit = splitEnabled && w >= theme.dp(SPLIT_MIN_WIDTH_DP)
+        if (wantSplit != split) {
+            split = wantSplit
+            rows = Layouts.forMode(mode, split)
+        }
+        rowHeight = theme.dp(
+            when {
+                split && cfg.screenHeightDp >= 600 -> 52f
+                split -> 44f
+                landscape -> 40f
+                else -> 54f
+            }
+        )
+        layoutKeys(w)
         setMeasuredDimension(w, (padTop + padBottom + rowHeight * 4).toInt())
     }
 
@@ -128,19 +153,25 @@ class KeyboardView(
 
     private fun layoutKeys(w: Int) {
         if (w <= 0) return
-        val unit = (w - padSide * 2) / 10f
+        val inner = w - padSide * 2
+        // Split: keys are at most 60dp wide; whatever is left over becomes the gap in the middle.
+        val splitGap = if (split) max(theme.dp(48f), inner - 10f * theme.dp(60f)) else 0f
+        val unit = (inner - splitGap) / 10f
         rows.forEachIndexed { r, row ->
             val total = row.fold(0f) { acc, k -> acc + k.width }
             var x = padSide + (10f - total) * unit / 2f
             val top = padTop + r * rowHeight
             row.forEachIndexed { i, k ->
-                val right = x + k.width * unit
-                k.rect.set(x + gap, top + gap, right - gap, top + rowHeight - gap)
+                // Keys that start past the middle of the 10-unit grid form the right half
+                // (y–p, h–l, b–m, ⌫, the second space bar, 。 and ⏎).
+                val left = if (split && (x - padSide) / unit >= 4.75f) x + splitGap else x
+                val right = left + k.width * unit
+                k.rect.set(left + gap, top + gap, right - gap, top + rowHeight - gap)
                 k.hit.set(
-                    if (i == 0) 0f else x, top,
+                    if (i == 0) 0f else left, top,
                     if (i == row.lastIndex) w.toFloat() else right, top + rowHeight,
                 )
-                x = right
+                x += k.width * unit
             }
         }
     }
@@ -149,8 +180,12 @@ class KeyboardView(
         if (rows.isEmpty()) return null
         val r = ((y - padTop) / rowHeight).toInt().coerceIn(0, rows.lastIndex)
         val row = rows[r]
-        return row.firstOrNull { x >= it.hit.left && x < it.hit.right }
-            ?: if (x < row.first().hit.left) row.first() else row.last()
+        row.firstOrNull { x >= it.hit.left && x < it.hit.right }?.let { return it }
+        return when {
+            x < row.first().hit.left -> row.first()
+            x >= row.last().hit.right -> row.last()
+            else -> null // the gap between the two halves
+        }
     }
 
     // ---------------------------------------------------------------- drawing
@@ -332,5 +367,6 @@ class KeyboardView(
 
     private companion object {
         const val LONG_PRESS_MS = 380L
+        const val SPLIT_MIN_WIDTH_DP = 600f // an unfolded Fold is wider than this, its cover screen is not
     }
 }

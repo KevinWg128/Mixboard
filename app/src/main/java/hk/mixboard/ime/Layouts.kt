@@ -50,11 +50,21 @@ object Layouts {
         'v' to "女", 'w' to "田", 'x' to "難", 'y' to "卜", 'z' to "重",
     )
 
-    fun forMode(mode: Int): List<List<Key>> = when (mode) {
-        SYMBOLS -> symbols
-        MORE -> more
-        else -> letters
+    /** The rows for [mode]. With [split] the space bar becomes two, one for each half. */
+    fun forMode(mode: Int, split: Boolean = false): List<List<Key>> {
+        val rows = when (mode) {
+            SYMBOLS -> symbols
+            MORE -> more
+            else -> letters
+        }
+        if (!split) return rows
+        return rows.map { row -> row.flatMap { k -> if (k.action == SPACE) splitSpace else listOf(k) } }
     }
+
+    private val splitSpace = listOf(
+        Key("速成 English", action = SPACE, width = 2f),
+        Key("速成 English", action = SPACE, width = 2f),
+    )
 
     private fun ch(label: String, text: String = label, long: String? = null) =
         Key(label, text = text, longText = long, hint = long)

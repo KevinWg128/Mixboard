@@ -53,6 +53,7 @@ class SetupActivity : Activity() {
         col.addView(toggle("英漢詞典（toy → 玩具）", Prefs.ENGLISH))
         col.addView(toggle("智能標點（中文句出，。英文句出 , .）", Prefs.SMART_PUNCT))
         col.addView(toggle("按鍵震動", Prefs.HAPTICS))
+        col.addView(toggle("闊螢幕分開左右兩邊（Fold 打開、橫向）", Prefs.SPLIT))
 
         col.addView(heading("手勢"))
         col.addView(text("空白鍵左右拉：移游標\n長按 q–p：數字\n長按 ，。：轉全形／半形\n長按 🌐：揀輸入法\n⇧ 撳兩下：大楷鎖定", 14f, top = 2))

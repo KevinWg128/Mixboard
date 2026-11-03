@@ -132,6 +132,7 @@ object Prefs {
     const val ENGLISH = "english"
     const val SMART_PUNCT = "smart_punct"
     const val HAPTICS = "haptics"
+    const val SPLIT = "split_wide"
     const val RESET_REQUESTED = "reset_requested"
     const val RESET_DONE = "reset_done"
 }

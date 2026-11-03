@@ -52,6 +52,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
     private var useEnglish = true
     private var smartPunct = true
     private var haptics = true
+    private var splitWide = true
 
     override fun onCreate() {
         super.onCreate()
@@ -75,7 +76,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
     override fun onCreateInputView(): View {
         val theme = Theme.from(this)
         val bar = CandidateBar(this, theme, ::pick, ::toggleExpand)
-        val kb = KeyboardView(this, theme, this)
+        val kb = KeyboardView(this, theme, this).apply { splitEnabled = splitWide }
         val grid = CandidateGridView(this, theme, ::pick)
         val gridScroll = ScrollView(this).apply {
             isFillViewport = true
@@ -118,6 +119,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
             cls == InputType.TYPE_CLASS_DATETIME
         keyboard?.let {
             it.haptics = haptics
+            it.splitEnabled = splitWide
             it.setMode(if (numeric) Layouts.SYMBOLS else Layouts.LETTERS)
             it.resetShift()
             it.enterLabel = enterLabelFor(info)
@@ -354,6 +356,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
         useEnglish = prefs.getBoolean(Prefs.ENGLISH, true)
         smartPunct = prefs.getBoolean(Prefs.SMART_PUNCT, true)
         haptics = prefs.getBoolean(Prefs.HAPTICS, true)
+        splitWide = prefs.getBoolean(Prefs.SPLIT, true)
         val wanted = prefs.getInt(Prefs.RESET_REQUESTED, 0)
         if (wanted != prefs.getInt(Prefs.RESET_DONE, 0)) {
             user.clear()

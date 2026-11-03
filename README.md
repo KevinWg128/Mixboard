@@ -17,6 +17,7 @@ Android keyboard modelled on Kaiboard: type English as normal, and the bar above
 - **滑動移游標**：喺空白鍵左右拉
 - **學習**：你揀過嘅字同聯想會排前，只存喺部機
 - **智能標點**：中文句出「，。」，全英文句出「, .」；長按換另一種
+- **分割鍵盤**：闊螢幕（Fold 打開、手機橫向）自動分左右兩邊，中間留空，兩邊都有空白鍵；設定可以關
 - 跟手機 light / dark mode
 - 冇網絡權限
 
