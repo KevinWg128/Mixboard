@@ -1,0 +1,63 @@
+# HK wording that ECDICT doesn't have, or ranks too low.
+# Format: english<TAB>中文 中文 ...   (space-separated, first one shows first)
+# Add your own lines, then rerun: python3 tools/build_dict.py
+laptop	手提電腦 筆記本電腦
+computer	電腦
+mobile	手機 流動
+phone	電話 手機
+taxi	的士
+bus	巴士
+minibus	小巴
+mtr	港鐵 地鐵
+lift	𨋢 升降機
+sorry	對唔住 唔好意思 抱歉
+thanks	多謝 唔該 謝謝
+thank	多謝 唔該
+please	唔該 請
+ok	好 得 冇問題
+yes	係 好
+no	唔係 唔好 冇
+cool	型 正 涼
+nice	好 正 靚
+happy	開心 快樂 幸福
+sad	唔開心 傷心 難過
+tired	攰 好攰 疲倦
+busy	忙 好忙 忙碌
+free	得閒 免費 自由
+lunch	晏晝飯 午餐 午飯
+dinner	晚飯 晚餐
+breakfast	早餐
+eat	食 食飯
+drink	飲 飲嘢
+go	去 走
+come	嚟 來
+look	睇 看
+see	睇 見
+want	想 要
+like	鍾意 喜歡 好似
+know	知 知道 識
+can	可以 識 得
+cannot	唔可以 唔得
+money	錢 銀紙
+weekend	週末 禮拜六日
+today	今日 今天
+tomorrow	聽日 明天
+yesterday	琴日 尋日 昨天
+now	而家 現在
+later	遲啲 之後
+what	乜嘢 咩 什麼
+why	點解 為什麼
+how	點 點樣 如何
+who	邊個 誰
+where	邊度 哪裏
+when	幾時 何時
+meeting	會議 開會
+deadline	死線 限期 截止日期
+promotion	推廣 優惠 升職
+discount	折扣 優惠
+order	訂單 落單 次序
+delivery	送貨 外賣 交付
+stock	存貨 庫存 股票
+vendor	供應商 賣家
+supplier	供應商
+category	類別 品類

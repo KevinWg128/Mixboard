@@ -1,0 +1,96 @@
+# Mixboard 中英混合鍵盤
+
+Android keyboard modelled on Kaiboard: type English as normal, and the bar above the keys shows 速成 characters for the same letters at the same time. Tap a character to swap the letters for it; press space to keep the English.
+
+```
+你打：  h i
+輸入框： hi̲              ← 英文已經喺度
+候選欄： hi │ 的 我 得 風 特 …   ← 撳「我」就變中文
+```
+
+## What's in v0.1
+
+- **中英混合**：一個 QWERTY layout，唔使切換
+- **速成**：用倉頡五代碼表計首尾碼，按 HK 常用程度排（包括口語字，例如 ru → 嘅 排第一）
+- **聯想字**：揀完字即刻出下一個字，港式詞語優先（我 → 哋、冇 → 得、點 → 解）
+- **英漢詞典**：打 `toy` 出「玩具」，打 `laptop` 出「手提電腦」
+- **滑動移游標**：喺空白鍵左右拉
+- **學習**：你揀過嘅字同聯想會排前，只存喺部機
+- **智能標點**：中文句出「，。」，全英文句出「, .」；長按換另一種
+- 跟手機 light / dark mode
+- 冇網絡權限
+
+## Build the APK
+
+### Option A: GitHub Actions (nothing to install)
+
+1. Create a **private** repo on GitHub and push this folder to the `main` branch.
+2. Open the repo's **Actions** tab. The *Build APK* run takes about 3–4 minutes.
+3. When it's green, open the repo's **Releases** page on your phone and download `mixboard-N.apk`.
+   (Or download it from the run's *Artifacts* on a computer.)
+
+Every push builds a new APK. The signing key in `app/personal.keystore` is fixed, so each new APK installs over the old one and keeps your learning data.
+
+### Option B: Android Studio
+
+Open the folder in Android Studio, let Gradle sync, then *Build → Build APK(s)*, or plug in the phone and press *Run*.
+
+From a terminal: `./gradlew assembleRelease` → `app/build/outputs/apk/release/app-release.apk`
+
+## Install on the phone
+
+1. Open the downloaded APK. Android asks you to allow installs from your browser or Files app; allow it once.
+2. Open the **Mixboard** app.
+3. Tap **1. 喺設定開啟 Mixboard** and switch it on. Android shows a standard warning for third-party keyboards; Mixboard has no internet permission.
+4. Tap **2. 轉用 Mixboard**.
+
+## How to type
+
+| 動作 | 結果 |
+|---|---|
+| 打字母 | 英文即刻出現，上面同時出速成字 |
+| 撳候選字 | 字母變中文，之後出聯想字 |
+| 撳最左嗰個灰色字 | 保留英文，唔加空格 |
+| 空白鍵 | 保留英文，加空格 |
+| 空白鍵左右拉 | 移游標 |
+| ▾ | 展開全部候選字 |
+| 長按 q–p | 數字 1–0 |
+| 長按 ，。 | 轉全形／半形 |
+| ⇧ 撳兩下 | 大楷鎖定 |
+| 🌐 | 轉去下一個輸入法；長按揀輸入法 |
+| ?123 → 中標 | 「」『』、……《》等 |
+
+Password and email fields switch to plain English automatically and nothing is learned there.
+
+## Customise
+
+**Add your own English → 中文 words**: edit `tools/en_overrides.tsv` (one line per word, tab after the English), then rebuild the dictionary:
+
+```
+pip install opencc pycantonese
+python3 tools/build_dict.py
+```
+
+That regenerates the three files in `app/src/main/assets/`. Commit them and push to get a new APK. The script downloads its source data into `tools/cache/` the first time (about 75 MB, ignored by git).
+
+**Tuning knobs** at the top of `tools/build_dict.py`: how strongly Cantonese words are boosted (`HK_WORD_WEIGHT`, `HK_CHAR_WEIGHT`) and how many candidates to keep.
+
+## Project layout
+
+```
+app/src/main/java/hk/mixboard/ime/
+  MixboardService.kt   the keyboard service: typing logic, candidates, punctuation
+  KeyboardView.kt      draws the keys; touch, long-press, delete repeat, cursor swipe
+  Layouts.kt           letter / symbol / 中標 layouts
+  Candidates.kt        candidate bar and the expanded grid
+  Dictionary.kt        loads the asset tables; UserDict = on-phone learning
+  SetupActivity.kt     the app screen: enable, try it, settings
+  Theme.kt             light / dark colours
+app/src/main/assets/   quick.tsv (速成), assoc.tsv (聯想), en2zh.tsv (英漢)
+tools/build_dict.py    builds the assets from open data (see THIRD_PARTY.md)
+```
+
+## Notes
+
+- Candidate order is by how common each character is in HK writing, not the Windows 速成 order. Your own picks move to the front after one use.
+- Ideas for later: 粵拼, 詞語連打 (e.g. 4 letters → a 2-character word), emoji panel, keyboard height setting.

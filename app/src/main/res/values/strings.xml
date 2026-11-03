@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Mixboard</string>
+    <string name="ime_name">Mixboard 中英混合</string>
+    <string name="subtype_label">中英混合（速成）</string>
+</resources>
