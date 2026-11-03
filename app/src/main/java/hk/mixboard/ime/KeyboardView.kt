@@ -46,6 +46,7 @@ class KeyboardView(
         }
 
     private var rowHeight = theme.dp(54f)
+    private var landscape = false
     private val padTop = theme.dp(5f)
     private val padBottom = theme.dp(7f)
     private val padSide = theme.dp(3f)
@@ -59,6 +60,10 @@ class KeyboardView(
     private val hintPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
         textAlign = Paint.Align.RIGHT
         textSize = theme.sp(10f)
+        color = theme.subText
+    }
+    private val radicalPaint = Paint(Paint.ANTI_ALIAS_FLAG).apply {
+        textAlign = Paint.Align.CENTER
         color = theme.subText
     }
     private val shadowRect = RectF()
@@ -113,7 +118,7 @@ class KeyboardView(
     // ---------------------------------------------------------------- layout
 
     override fun onMeasure(widthMeasureSpec: Int, heightMeasureSpec: Int) {
-        val landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        landscape = resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
         rowHeight = theme.dp(if (landscape) 40f else 54f)
         val w = MeasureSpec.getSize(widthMeasureSpec)
         setMeasuredDimension(w, (padTop + padBottom + rowHeight * 4).toInt())
@@ -185,8 +190,21 @@ class KeyboardView(
             else -> theme.sp(15f)
         }
         labelPaint.typeface = if (k.action == Layouts.ENTER && text.length > 1) Typeface.DEFAULT_BOLD else Typeface.DEFAULT
-        val baseline = k.rect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
-        c.drawText(text, k.rect.centerX(), baseline, labelPaint)
+        val radical = k.radical
+        if (radical == null) {
+            val baseline = k.rect.centerY() - (labelPaint.descent() + labelPaint.ascent()) / 2f
+            c.drawText(text, k.rect.centerX(), baseline, labelPaint)
+        } else {
+            // Letter keys: the letter sits a little higher with its 倉頡字根 underneath.
+            labelPaint.textSize = theme.sp(if (landscape) 18f else 20f)
+            radicalPaint.textSize = theme.sp(if (landscape) 10f else 12f)
+            val radicalBaseline = k.rect.bottom - theme.dp(if (landscape) 2f else 4f)
+            val radicalTop = radicalBaseline - radicalPaint.textSize * 0.9f
+            val centerY = (k.rect.top + radicalTop) / 2f
+            val baseline = centerY - (labelPaint.descent() + labelPaint.ascent()) / 2f
+            c.drawText(text, k.rect.centerX(), baseline, labelPaint)
+            c.drawText(radical, k.rect.centerX(), radicalBaseline, radicalPaint)
+        }
         k.hint?.let { c.drawText(it, k.rect.right - theme.dp(5f), k.rect.top + theme.sp(11f), hintPaint) }
     }
 

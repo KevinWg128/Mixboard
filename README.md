@@ -10,7 +10,7 @@ Android keyboard modelled on Kaiboard: type English as normal, and the bar above
 
 ## What's in v0.1
 
-- **中英混合**：一個 QWERTY layout，唔使切換
+- **中英混合**：一個 QWERTY layout，唔使切換，每個字母鍵都印住倉頡字根（手田水口…）
 - **速成**：用倉頡五代碼表計首尾碼，按 HK 常用程度排（包括口語字，例如 ru → 嘅 排第一）
 - **聯想字**：揀完字即刻出下一個字，港式詞語優先（我 → 哋、冇 → 得、點 → 解）
 - **英漢詞典**：打 `toy` 出「玩具」，打 `laptop` 出「手提電腦」

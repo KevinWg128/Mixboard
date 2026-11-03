@@ -13,6 +13,7 @@ class Key(
     val width: Float = 1f,
     val longText: String? = null,
     val hint: String? = null,
+    val radical: String? = null, // 倉頡字根 shown under the letter
 ) {
     val rect = RectF() // what gets drawn
     val hit = RectF()  // what responds to touch (fills the gaps between keys)
@@ -41,6 +42,14 @@ object Layouts {
 
     val LONG_PRESS_ACTIONS = setOf(COMMA, PERIOD, SWITCH)
 
+    /** 倉頡字根 printed on each letter key, as on HK keyboards. 速成 uses the same radicals. */
+    val RADICALS: Map<Char, String> = mapOf(
+        'a' to "日", 'b' to "月", 'c' to "金", 'd' to "木", 'e' to "水", 'f' to "火", 'g' to "土",
+        'h' to "竹", 'i' to "戈", 'j' to "十", 'k' to "大", 'l' to "中", 'm' to "一", 'n' to "弓",
+        'o' to "人", 'p' to "心", 'q' to "手", 'r' to "口", 's' to "尸", 't' to "廿", 'u' to "山",
+        'v' to "女", 'w' to "田", 'x' to "難", 'y' to "卜", 'z' to "重",
+    )
+
     fun forMode(mode: Int): List<List<Key>> = when (mode) {
         SYMBOLS -> symbols
         MORE -> more
@@ -49,6 +58,9 @@ object Layouts {
 
     private fun ch(label: String, text: String = label, long: String? = null) =
         Key(label, text = text, longText = long, hint = long)
+
+    private fun letter(c: Char, long: String? = null) =
+        Key(c.toString(), text = c.toString(), longText = long, hint = long, radical = RADICALS[c])
 
     private fun fn(label: String, action: Int, width: Float = 1f) = Key(label, action = action, width = width)
 
@@ -62,9 +74,9 @@ object Layouts {
     )
 
     private val letters: List<List<Key>> = listOf(
-        "qwertyuiop".mapIndexed { i, c -> ch(c.toString(), long = ((i + 1) % 10).toString()) },
-        "asdfghjkl".map { ch(it.toString()) },
-        listOf(fn("⇧", SHIFT, 1.5f)) + "zxcvbnm".map { ch(it.toString()) } + fn("⌫", DELETE, 1.5f),
+        "qwertyuiop".mapIndexed { i, c -> letter(c, long = ((i + 1) % 10).toString()) },
+        "asdfghjkl".map { letter(it) },
+        listOf(fn("⇧", SHIFT, 1.5f)) + "zxcvbnm".map { letter(it) } + fn("⌫", DELETE, 1.5f),
         bottom("?123", TO_SYMBOLS),
     )
 
