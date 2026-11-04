@@ -222,6 +222,7 @@ class KeyboardView(
             k.action == Layouts.COMMA || k.action == Layouts.PERIOD -> theme.sp(22f)
             k.text != null && text.length <= 2 -> theme.sp(22f)
             k.action == Layouts.SHIFT || k.action == Layouts.DELETE -> theme.sp(20f)
+            k.action == Layouts.EMOJI -> theme.sp(22f)
             else -> theme.sp(15f)
         }
         labelPaint.typeface = if (k.action == Layouts.ENTER && text.length > 1) Typeface.DEFAULT_BOLD else Typeface.DEFAULT

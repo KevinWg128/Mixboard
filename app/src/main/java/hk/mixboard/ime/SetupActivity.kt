@@ -56,7 +56,7 @@ class SetupActivity : Activity() {
         col.addView(toggle("闊螢幕分開左右兩邊（Fold 打開、橫向）", Prefs.SPLIT))
 
         col.addView(heading("手勢"))
-        col.addView(text("空白鍵左右拉：移游標\n長按 q–p：數字\n長按 ，。：轉全形／半形\n長按 🌐：揀輸入法\n⇧ 撳兩下：大楷鎖定", 14f, top = 2))
+        col.addView(text("空白鍵左右拉：移游標\n長按 q–p：數字\n長按 ，。：轉全形／半形\n☺︎：emoji；長按：轉其他鍵盤\n⇧ 撳兩下：大楷鎖定", 14f, top = 2))
 
         col.addView(heading("學習記錄"))
         col.addView(text("Mixboard 會記住你揀過嘅字同聯想，下次排前啲。", 14f, top = 2))

@@ -34,13 +34,13 @@ object Layouts {
     const val TO_SYMBOLS = 3
     const val TO_LETTERS = 4
     const val TO_MORE = 5
-    const val SWITCH = 6
+    const val EMOJI = 6
     const val ENTER = 7
     const val SPACE = 8
     const val COMMA = 9
     const val PERIOD = 10
 
-    val LONG_PRESS_ACTIONS = setOf(COMMA, PERIOD, SWITCH)
+    val LONG_PRESS_ACTIONS = setOf(COMMA, PERIOD, EMOJI)
 
     /** 倉頡字根 printed on each letter key, as on HK keyboards. 速成 uses the same radicals. */
     val RADICALS: Map<Char, String> = mapOf(
@@ -76,7 +76,7 @@ object Layouts {
 
     private fun bottom(modeLabel: String, modeAction: Int) = listOf(
         fn(modeLabel, modeAction, 1.5f),
-        fn("🌐", SWITCH),
+        fn("☺︎", EMOJI), // long press: other keyboards
         Key("，", action = COMMA, hint = ","),
         Key("速成 English", action = SPACE, width = 4f),
         Key("。", action = PERIOD, hint = "."),

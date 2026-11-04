@@ -27,7 +27,7 @@ import kotlin.math.abs
  * plus Chinese for English words (toy → 玩具). Tap one to swap the letters for it;
  * press space to keep the English.
  */
-class MixboardService : InputMethodService(), KeyboardView.Listener {
+class MixboardService : InputMethodService(), KeyboardView.Listener, EmojiPanel.Listener {
 
     private lateinit var prefs: SharedPreferences
     private lateinit var dict: Dictionary
@@ -38,6 +38,9 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
     private var bar: CandidateBar? = null
     private var grid: CandidateGridView? = null
     private var gridScroll: ScrollView? = null
+    private var emoji: EmojiPanel? = null
+    private var emojiOpen = false
+    private val recentEmoji = ArrayList<String>()
 
     private val buffer = StringBuilder()          // letters typed since the last commit
     private var candidates: List<Candidate> = emptyList()
@@ -60,6 +63,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
         user = UserDict(File(filesDir, "user_dict.tsv"))
         user.load()
         readPrefs()
+        prefs.getString(Prefs.RECENT_EMOJI, null)?.split('\t')?.filterTo(recentEmoji) { it.isNotEmpty() }
         dict = Dictionary(assets)
         dict.loadAsync { main.post { if (buffer.isNotEmpty()) refreshCandidates() } }
     }
@@ -84,15 +88,23 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
             addView(grid, ViewGroup.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             visibility = View.GONE
         }
+        val emoji = EmojiPanel(this, theme, this).apply {
+            visibility = View.GONE
+            haptics = this@MixboardService.haptics
+            recent = recentEmoji.toList()
+        }
         val frame = FrameLayout(this).apply {
             addView(kb, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT))
             addView(gridScroll, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
+            addView(emoji, FrameLayout.LayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.MATCH_PARENT))
         }
         this.bar = bar
         this.keyboard = kb
         this.grid = grid
         this.gridScroll = gridScroll
+        this.emoji = emoji
         expanded = false
+        emojiOpen = false
         return LinearLayout(this).apply {
             orientation = LinearLayout.VERTICAL
             setBackgroundColor(theme.board)
@@ -124,6 +136,8 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
             it.resetShift()
             it.enterLabel = enterLabelFor(info)
         }
+        emoji?.haptics = haptics
+        setEmojiOpen(false)
         showCandidates(emptyList())
     }
 
@@ -185,7 +199,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
             Layouts.ENTER -> enter(ic)
             Layouts.COMMA -> punct(ic, "，", ",", longPress, spaced)
             Layouts.PERIOD -> punct(ic, "。", ".", longPress, spaced)
-            Layouts.SWITCH -> switchKeyboard(longPress)
+            Layouts.EMOJI -> if (longPress) showInputMethodPicker() else setEmojiOpen(true)
         }
     }
 
@@ -263,10 +277,46 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
         return line.none { it.isCjkOrWide() }
     }
 
-    private fun switchKeyboard(longPress: Boolean) {
-        if (longPress || !switchToNextInputMethod(false)) {
-            (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+    /** Only on a long press of ☺︎, so a slip of the finger never leaves Mixboard. */
+    private fun showInputMethodPicker() {
+        (getSystemService(INPUT_METHOD_SERVICE) as InputMethodManager).showInputMethodPicker()
+    }
+
+    // ---------------------------------------------------------------- emoji
+
+    private fun setEmojiOpen(on: Boolean) {
+        if (on) {
+            currentInputConnection?.let { commitBuffer(it) }
+            lastChinese = null
+            pendingSpace = false
+            showCandidates(emptyList())
+            emoji?.open()
         }
+        emojiOpen = on
+        emoji?.visibility = if (on) View.VISIBLE else View.GONE
+        keyboard?.visibility = if (on || expanded) View.INVISIBLE else View.VISIBLE
+    }
+
+    override fun onEmoji(text: String) {
+        val ic = currentInputConnection ?: return
+        ic.commitText(text, 1)
+        pendingSpace = false
+        lastChinese = null
+        recentEmoji.remove(text)
+        recentEmoji.add(0, text)
+        while (recentEmoji.size > RECENT_EMOJI_MAX) recentEmoji.removeAt(recentEmoji.size - 1)
+        emoji?.recent = recentEmoji.toList()
+        prefs.edit().putString(Prefs.RECENT_EMOJI, recentEmoji.joinToString("\t")).apply()
+    }
+
+    override fun onEmojiBack() = setEmojiOpen(false)
+
+    override fun onEmojiSpace() {
+        currentInputConnection?.let { space(it) }
+    }
+
+    override fun onEmojiDelete() {
+        currentInputConnection?.let { delete(it) }
     }
 
     private fun compose(ic: InputConnection) {
@@ -341,7 +391,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
     private fun setExpanded(on: Boolean) {
         expanded = on && candidates.isNotEmpty()
         gridScroll?.visibility = if (expanded) View.VISIBLE else View.GONE
-        keyboard?.visibility = if (expanded) View.INVISIBLE else View.VISIBLE
+        keyboard?.visibility = if (expanded || emojiOpen) View.INVISIBLE else View.VISIBLE
         if (expanded) {
             grid?.setItems(candidates)
             gridScroll?.scrollTo(0, 0)
@@ -378,6 +428,7 @@ class MixboardService : InputMethodService(), KeyboardView.Listener {
 
     private companion object {
         const val STALE_MS = 400L
+        const val RECENT_EMOJI_MAX = 40
 
         val PASSWORD_VARIATIONS = setOf(
             InputType.TYPE_TEXT_VARIATION_PASSWORD,
